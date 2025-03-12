@@ -1,0 +1,17 @@
+{
+  "name": "bear-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Bear Notes",
+  "main": "bear-mcp-server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node bear-mcp-server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "sqlite3": "latest"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
