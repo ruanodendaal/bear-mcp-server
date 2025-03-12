@@ -1,10 +1,12 @@
-# Bear Notes MCP Server
+# Bear Notes MCP Server with RAG
 
-This is a Model Context Protocol (MCP) server that connects to your Bear Notes database, allowing AI assistants to search and retrieve your notes.
+Looking to supercharge your Bear Notes experience with AI assistants? This little gem connects your personal knowledge base to AI systems using semantic search and RAG (Retrieval-Augmented Generation).
 
-## Installation
+I built this because I wanted my AI assistants to actually understand what's in my notes, not just perform simple text matching. The result is rather sweet, if I do say so myself.
 
-Clone this repository and install dependencies:
+## Getting Started
+
+Setting up is straightforward:
 
 ```bash
 git clone [your-repo-url]
@@ -12,15 +14,26 @@ cd bear-mcp-server
 npm install
 ```
 
-Make the server executable:
+Make the scripts executable (because permissions matter):
 
 ```bash
 chmod +x src/bear-mcp-server.js
+chmod +x src/create-index.js
 ```
+
+## First Things First: Index Your Notes
+
+Before diving in, you'll need to create vector embeddings of your notes:
+
+```bash
+npm run index
+```
+
+Fair warning: this might take a few minutes if you're a prolific note-taker like me. It's converting all your notes into mathematical vectors that capture their meaning— clever stuff 😉.
 
 ## Configuration
 
-Update your MCP configuration file to include the Bear Notes server:
+Update your MCP configuration file:
 
 ```json
 {
@@ -31,73 +44,100 @@ Update your MCP configuration file to include the Bear Notes server:
         "/absolute/path/to/bear-mcp-server/src/bear-mcp-server.js"
       ],
       "env": {
-        "BEAR_DATABASE_PATH": "/Users/yourusername/Library/Group Containers/9K33E3U3T4.net.shinyfrog.bear/Application Data/database.sqlite"
+        "BEAR_DATABASE_PATH": "/Users/yourusername/Library/Group Containers/9K33E3U3T4.net.shinyfrog.net.bear/Application Data/database.sqlite"
       }
     }
   }
 }
 ```
 
-Replace `/absolute/path/to/bear-mcp-server` with the actual path to your installation.
+> 🚨 _Remember to replace the path with your actual installation location. No prizes for using the example path verbatim, I'm afraid._ 
 
-## Features
+## What Makes This Special?
 
-- **Search Notes**: Search through your Bear Notes by title and content
-- **Retrieve Full Notes**: Get complete note content including metadata
-- **Tag Support**: Access tags associated with each note and list all available tags
-- **Integration with AI Assistants**: Seamlessly connect your notes to MCP-compatible AI assistants
+- **Semantic Search**: Find notes based on meaning, not just keywords. Ask about "productivity systems" and it'll find your notes on GTD and Pomodoro, even if they don't contain those exact words.
 
-## Available Tools
+- **RAG Support**: Your AI assistants can now pull in relevant context from your notes, even when you haven't explicitly mentioned them.
 
-This MCP server provides the following tools that can be used by AI assistants:
+- **All Local Processing**: Everything runs on your machine. No data leaves your computer, no API keys needed, no internet dependency (after initial setup).
 
-1. **search_notes**: Search for notes in Bear that match a query
-   - Required parameter: `query` (string)
-   - Optional parameter: `limit` (number, default: 10)
-
-2. **get_note**: Retrieve a specific note by its ID
-   - Required parameter: `id` (string)
-
-3. **get_tags**: Get a list of all tags used in your Bear Notes
+- **Graceful Fallbacks**: If semantic search isn't available for whatever reason, it'll quietly fall back to traditional search. Belt and braces.
 
 ## How It Works
 
-This server:
+### The Clever Bits
 
-1. Connects to your Bear Notes SQLite database in read-only mode
-2. Exposes MCP tools for interacting with your notes
-3. Uses stdio transport for seamless integration with MCP clients
-4. Automatically starts and stops with the MCP client
+This server uses the Xenova implementation of transformers.js with the all-MiniLM-L6-v2 model:
 
-## Database Schema
+- It creates 384-dimensional vectors that capture the semantic essence of your notes
+- All processing happens locally on your machine
+- The first startup might be a tad slow while the model loads, but it's zippy after that
 
-The server works with Bear's SQLite database schema, including:
+### The Flow
 
-- `ZSFNOTE`: Main notes table
-- `ZSFNOTETAG`: Note tags
-- `Z_7TAGS`: Tag relationships
+1. Your query gets converted into a vector using the transformer model
+2. This vector is compared to the pre-indexed vectors of your notes
+3. Notes with similar meanings are returned, regardless of exact keyword matches
+4. AI assistants use these relevant notes as context for their responses
+
+## Project Structure
+
+Nothing too complex here:
+
+```
+bear-mcp-server/
+├── package.json
+├── readme.md
+└── src/
+    ├── bear-mcp-server.js     # Main MCP server
+    ├── create-index.js        # Script to index notes
+    ├── utils.js               # Utility functions
+    ├── lib/                   # Additional utilities and diagnostic scripts
+    │   └── explore-database.js # Database exploration and diagnostic tool
+    ├── note_vectors.index     # Generated vector index (after indexing)
+    └── note_vectors.json      # Note ID mapping (after indexing)
+```
+
+## Available Tools for AI Assistants
+
+AI assistants connecting to this server can use these tools:
+
+1. **search_notes**: Find notes that match a query
+   - Parameters: `query` (required), `limit` (optional, default: 10), `semantic` (optional, default: true)
+
+2. **get_note**: Fetch a specific note by its ID
+   - Parameters: `id` (required)
+
+3. **get_tags**: List all tags used in your Bear Notes
+
+4. **retrieve_for_rag**: Get notes semantically similar to a query, specifically formatted for RAG
+   - Parameters: `query` (required), `limit` (optional, default: 5)
 
 ## Requirements
 
-- Node.js version 14 or higher
+- Node.js version 16 or higher
 - Bear Notes for macOS
 - An MCP-compatible AI assistant client
 
-## Limitations
+## Limitations & Caveats
 
-- Read-only access to your Bear Notes
-- Only works with Bear Notes on macOS
-- Cannot create or modify notes
+- Read-only access to Bear Notes (we're not modifying your precious notes)
+- macOS only (sorry Windows and Linux folks)
+- If you add loads of new notes, you'll want to rebuild the index with `npm run index`
+- First startup is a bit like waiting for the kettle to boil while the embedding model loads
 
 ## Troubleshooting
 
-If you encounter issues:
+If things go wonky:
 
-1. Ensure the database path is correct
-2. Check permissions on the Bear Notes database
-3. Verify the server script is executable
-4. Look for error messages in the MCP client logs
+1. Double-check your Bear database path
+2. Make sure you've run the indexing process with `npm run index`
+3. Check permissions on the Bear Notes database
+4. Verify the server scripts are executable
+5. Look for error messages in the logs
+
+When in doubt, try turning it off and on again. Works more often than we'd like to admit.
 
 ## License
 
-MIT
+MIT (Feel free to tinker, share, and improve)
