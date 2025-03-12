@@ -1,1 +1,6 @@
 node_modules
+.DS_Store
+
+# Vector index files
+src/note_vectors.index
+src/note_vectors.json

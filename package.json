@@ -1,15 +1,19 @@
 {
   "name": "bear-mcp-server",
   "version": "1.0.0",
-  "description": "Model Context Protocol server for Bear Notes",
-  "main": "bear-mcp-server.js",
+  "description": "Model Context Protocol server for Bear Notes with RAG capabilities",
+  "main": "src/bear-mcp-server.js",
   "type": "module",
   "scripts": {
-    "start": "node bear-mcp-server.js"
+    "start": "node src/bear-mcp-server.js",
+    "index": "node src/create-index.js",
+    "test": "node src/lib/explore-database.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
-    "sqlite3": "latest"
+    "sqlite3": "latest",
+    "@xenova/transformers": "^2.15.0",
+    "faiss-node": "^0.5.1"
   },
   "engines": {
     "node": ">=16.0.0"
