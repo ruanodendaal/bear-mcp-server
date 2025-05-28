@@ -138,6 +138,44 @@ If things go wonky:
 
 When in doubt, try turning it off and on again. Works more often than we'd like to admit.
 
+## 🐳 Running with Docker (Optional)
+
+Prefer containers? You can run everything inside Docker too.
+
+### 1. Build the Docker image
+
+```bash
+docker build -t bear-mcp-server .
+```
+
+### 2. Index your notes
+
+You'll still need to run the indexing step before anything useful happens:
+
+```bash
+docker run \
+  -v /path/to/your/NoteDatabase.sqlite:/app/database.sqlite \
+  -e BEAR_DATABASE_PATH=/app/database.sqlite \
+  bear-mcp-server \
+  npm run index
+```
+
+> 🛠 Replace `/path/to/your/NoteDatabase.sqlite` with the actual path to your Bear database.
+
+### 3. Start the server
+
+Once indexed, fire it up:
+
+```bash
+docker run \
+  -v /path/to/your/NoteDatabase.sqlite:/app/database.sqlite \
+  -e BEAR_DATABASE_PATH=/app/database.sqlite \
+  -p 8000:8000 \
+  bear-mcp-server
+```
+
+Boom—your AI assistant is now running in a container and talking to your notes.
+
 ## License
 
 MIT (Feel free to tinker, share, and improve)
